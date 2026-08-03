@@ -1,7 +1,13 @@
 from fastapi import FastAPI
 
-app=FastAPI()
+from app.database import Base, engine
+from app.models.user import User
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
 
 @app.get("/")
 def home():
-    return{"message":"student management API"}
+    return {"message": "Student Management API"}
