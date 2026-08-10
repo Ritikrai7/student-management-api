@@ -52,3 +52,13 @@ class UserResponse(BaseModel):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserLogin(BaseModel):
+    email: EmailStr
+
+    password: str = Field(
+        ...,
+        min_length=6,
+        max_length=100,
+        description="Enter your password"
+    )
