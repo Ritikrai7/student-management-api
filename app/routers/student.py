@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends,HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from app.dependencies import get_db, require_roles
 from app.schemas.student import StudentCreate, StudentResponse
 from app.models.student import Student
+from app.models.user import User
 
 
 router = APIRouter(
@@ -19,7 +20,10 @@ router = APIRouter(
 @router.post("/", response_model=StudentResponse)
 def create_student(
     student: StudentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "teacher")
+    )
 ):
     new_student = Student(
         name=student.name,
@@ -34,40 +38,6 @@ def create_student(
 
     return new_student
 
-
-# =========================
-# Get All Students
-# =========================
-
-@router.get("/", response_model=list[StudentResponse])
-def get_students(
-    db: Session = Depends(get_db)
-):
-    students = db.query(Student).all()
-
-    return students
-
-# =========================
-# Get Student By ID
-# =========================
-
-@router.get("/{student_id}", response_model=StudentResponse)
-def get_student(
-    student_id: int,
-    db: Session = Depends(get_db)
-):
-    student = db.query(Student).filter(
-        Student.id == student_id
-    ).first()
-
-    if not student:
-        raise HTTPException(
-            status_code=404,
-            detail="Student not found"
-        )
-
-    return student
-
 # =========================
 # Update Student
 # =========================
@@ -76,7 +46,10 @@ def get_student(
 def update_student(
     student_id: int,
     student_data: StudentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "teacher")
+    )
 ):
     student = db.query(Student).filter(
         Student.id == student_id
@@ -98,6 +71,47 @@ def update_student(
 
     return student
 
+
+# =========================
+# Get All Students
+# =========================
+
+@router.get("/", response_model=list[StudentResponse])
+def get_students(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "teacher")
+    )
+):
+    students = db.query(Student).all()
+
+    return students
+
+
+# =========================
+# Get Student By ID
+# =========================
+
+@router.get("/{student_id}", response_model=StudentResponse)
+def get_student(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "teacher")
+    )
+):
+    student = db.query(Student).filter(
+        Student.id == student_id
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found"
+        )
+
+    return student
+
 # =========================
 # Delete Student
 # =========================
@@ -105,7 +119,10 @@ def update_student(
 @router.delete("/{student_id}")
 def delete_student(
     student_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin")
+    )
 ):
     student = db.query(Student).filter(
         Student.id == student_id

@@ -57,7 +57,8 @@ def register_user(
     new_user = User(
         username=user.username,
         email=user.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        role="student"
     )
 
     # Save user

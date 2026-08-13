@@ -78,3 +78,22 @@ def get_current_user(
         )
 
     return user
+
+# =========================
+# Role Authorization
+# =========================
+
+def require_roles(*required_roles: str):
+
+    def role_checker(
+        current_user: User = Depends(get_current_user)
+    ):
+        if current_user.role not in required_roles:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to access this resource"
+            )
+
+        return current_user
+
+    return role_checker
