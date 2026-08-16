@@ -32,6 +32,7 @@ class StudentResponse(BaseModel):
     email: EmailStr
     age: int
     course: str
+    user_id:int
 
     model_config = {
         "from_attributes": True

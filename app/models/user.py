@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy.orm import relationship
+
 from app.database import Base
 
 
@@ -12,3 +14,8 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     role = Column(String(20), default="student", nullable=False)
+
+    students = relationship(
+        "Student",
+        back_populates="user"
+    )

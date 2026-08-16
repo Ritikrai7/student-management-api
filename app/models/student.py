@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
@@ -11,3 +12,14 @@ class Student(Base):
     email = Column(String(100), unique=True, nullable=False)
     age = Column(Integer, nullable=False)
     course = Column(String(100), nullable=False)
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False
+    )
+
+    user = relationship(
+        "User",
+        back_populates="students"
+    )

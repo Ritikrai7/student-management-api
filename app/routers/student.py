@@ -29,7 +29,8 @@ def create_student(
         name=student.name,
         email=student.email,
         age=student.age,
-        course=student.course
+        course=student.course,
+        user_id=current_user.id
     )
 
     db.add(new_student)
@@ -139,4 +140,75 @@ def delete_student(
 
     return {
         "message": "Student deleted successfully"
+    }
+
+# =========================
+# Test User-Student Relationship
+# =========================
+
+@router.get("/user/{user_id}")
+def get_user_students(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(
+        User.id == user_id
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return {
+        "user_id": user.id,
+        "username": user.username,
+        "students": [
+            {
+                "id": student.id,
+                "name": student.name,
+                "email": student.email,
+                "course": student.course
+            }
+            for student in user.students
+        ]
+    }
+
+# =========================
+# Get Student's User
+# =========================
+
+@router.get("/{student_id}/user")
+def get_student_user(
+    student_id: int,
+    db: Session = Depends(get_db)
+):
+    student = db.query(Student).filter(
+        Student.id == student_id
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found"
+        )
+
+    user = student.user
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return {
+        "student_id": student.id,
+        "student_name": student.name,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+        }
     }
