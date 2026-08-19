@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Query
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, require_roles
@@ -79,12 +79,20 @@ def update_student(
 
 @router.get("/", response_model=list[StudentResponse])
 def get_students(
+    name: str | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_roles("admin", "teacher")
     )
 ):
-    students = db.query(Student).all()
+    query = db.query(Student)
+
+    if name:
+        query = query.filter(
+            Student.name.ilike(f"%{name}%")
+        )
+
+    students = query.all()
 
     return students
 
