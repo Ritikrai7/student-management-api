@@ -80,7 +80,10 @@ def update_student(
 @router.get("/", response_model=list[StudentResponse])
 def get_students(
     name: str | None = Query(default=None),
+    page: int = Query(default=1,ge=1),
+    limit:int = Query(default=10,ge=1,le=100),
     db: Session = Depends(get_db),
+
     current_user: User = Depends(
         require_roles("admin", "teacher")
     )
@@ -92,7 +95,8 @@ def get_students(
             Student.name.ilike(f"%{name}%")
         )
 
-    students = query.all()
+    offset=(page-1)*limit
+    students=query.offset(offset).limit(limit).all()
 
     return students
 
