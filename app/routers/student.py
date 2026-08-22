@@ -73,6 +73,7 @@ def update_student(
     return student
 
 
+
 # =========================
 # Get All Students
 # =========================
@@ -80,8 +81,11 @@ def update_student(
 @router.get("/", response_model=list[StudentResponse])
 def get_students(
     name: str | None = Query(default=None),
-    page: int = Query(default=1,ge=1),
-    limit:int = Query(default=10,ge=1,le=100),
+    course:str | None =Query(default=None),
+    sort_by:str | None = Query(default=None),
+    order:str = Query(default='asc'),
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=10, ge=1, le=100),
     db: Session = Depends(get_db),
 
     current_user: User = Depends(
@@ -90,16 +94,54 @@ def get_students(
 ):
     query = db.query(Student)
 
+    if sort_by and sort_by not in ["age", "name", "course"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid sort_by. Allowed values: age, name, course"
+    )
+
+    if order not in ["asc", "desc"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid order. Allowed values: asc, desc"
+    )
+
+    # Name search
     if name:
         query = query.filter(
             Student.name.ilike(f"%{name}%")
         )
+    # course search
+    if course:
+        query=query.filter(
+            Student.course==course
+        )
+    if sort_by == "age":
+        if order == "desc":
+            query = query.order_by(Student.age.desc())
+        else:
+            query = query.order_by(Student.age.asc())
 
-    offset=(page-1)*limit
-    students=query.offset(offset).limit(limit).all()
+    elif sort_by == "name":
+        if order == "desc":
+            query = query.order_by(Student.name.desc())
+        else:
+            query = query.order_by(Student.name.asc())
+
+    elif sort_by == "course":
+        if order == "desc":
+            query = query.order_by(Student.course.desc())
+        else:
+            query = query.order_by(Student.course.asc())
+
+    
+
+    # Pagination
+    offset = (page - 1) * limit
+
+    students = query.offset(offset).limit(limit).all()
 
     return students
-
 
 # =========================
 # Get Student By ID
