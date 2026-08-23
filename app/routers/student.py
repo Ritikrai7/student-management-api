@@ -92,7 +92,9 @@ def get_students(
         require_roles("admin", "teacher")
     )
 ):
-    query = db.query(Student)
+    query = db.query(Student).filter(
+        Student.is_deleted==False
+    )
 
     if sort_by and sort_by not in ["age", "name", "course"]:
         raise HTTPException(
@@ -156,7 +158,8 @@ def get_student(
     )
 ):
     student = db.query(Student).filter(
-        Student.id == student_id
+        Student.id == student_id,
+        Student.is_deleted==False
     ).first()
 
     if not student:
@@ -189,7 +192,7 @@ def delete_student(
             detail="Student not found"
         )
 
-    db.delete(student)
+    student.is_deleted=True
     db.commit()
 
     return {
