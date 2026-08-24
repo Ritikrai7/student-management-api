@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException,Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.dependencies import get_db, require_roles
 from app.schemas.student import StudentCreate, StudentResponse
@@ -71,6 +72,55 @@ def update_student(
     db.refresh(student)
 
     return student
+
+# =========================
+# Student Statistics
+# =========================
+
+@router.get("/statistics")
+def student_statistics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "teacher")
+    )
+):
+    total_students = db.query(func.count(Student.id)).filter(
+        Student.is_deleted == False
+    ).scalar()
+
+    average_age = db.query(func.avg(Student.age)).filter(
+            Student.is_deleted == False
+        ).scalar()
+
+    youngest_age = db.query(func.min(Student.age)).filter(
+        Student.is_deleted == False
+    ).scalar()
+
+    oldest_age = db.query(func.max(Student.age)).filter(
+        Student.is_deleted == False
+    ).scalar()
+
+    course_counts = db.query(
+        Student.course,
+        func.count(Student.id)
+    ).filter(
+        Student.is_deleted == False
+    ).group_by(
+        Student.course
+    ).all()
+
+    course_counts = {
+    course: count
+    for course, count in course_counts
+    }
+
+    return {
+    "total_students": total_students,
+    "average_age": average_age,
+    "youngest_age": youngest_age,
+    "oldest_age": oldest_age,
+    "course_counts": course_counts
+    }
 
 
 
@@ -229,6 +279,7 @@ def get_user_students(
                 "course": student.course
             }
             for student in user.students
+            if not student.is_deleted
         ]
     }
 
