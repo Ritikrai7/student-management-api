@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException,Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -40,6 +40,7 @@ def create_student(
 
     return new_student
 
+
 # =========================
 # Update Student
 # =========================
@@ -73,6 +74,7 @@ def update_student(
 
     return student
 
+
 # =========================
 # Student Statistics
 # =========================
@@ -89,16 +91,20 @@ def student_statistics(
     ).scalar()
 
     average_age = db.query(func.avg(Student.age)).filter(
-            Student.is_deleted == False
-        ).scalar()
-
-    youngest_age = db.query(func.min(Student.age)).filter(
         Student.is_deleted == False
     ).scalar()
 
-    oldest_age = db.query(func.max(Student.age)).filter(
+    youngest_student = db.query(Student).filter(
         Student.is_deleted == False
-    ).scalar()
+    ).order_by(
+        Student.age.asc()
+    ).first()
+
+    oldest_student = db.query(Student).filter(
+        Student.is_deleted == False
+    ).order_by(
+        Student.age.desc()
+    ).first()
 
     course_counts = db.query(
         Student.course,
@@ -110,18 +116,26 @@ def student_statistics(
     ).all()
 
     course_counts = {
-    course: count
-    for course, count in course_counts
+        course: count
+        for course, count in course_counts
     }
 
     return {
-    "total_students": total_students,
-    "average_age": average_age,
-    "youngest_age": youngest_age,
-    "oldest_age": oldest_age,
-    "course_counts": course_counts
-    }
+        "total_students": total_students,
+        "average_age": average_age,
 
+        "youngest_student": {
+            "name": youngest_student.name,
+            "age": youngest_student.age
+        } if youngest_student else None,
+
+        "oldest_student": {
+            "name": oldest_student.name,
+            "age": oldest_student.age
+        } if oldest_student else None,
+
+        "course_counts": course_counts
+    }
 
 
 # =========================
@@ -131,43 +145,45 @@ def student_statistics(
 @router.get("/", response_model=list[StudentResponse])
 def get_students(
     name: str | None = Query(default=None),
-    course:str | None =Query(default=None),
-    sort_by:str | None = Query(default=None),
-    order:str = Query(default='asc'),
+    course: str | None = Query(default=None),
+    sort_by: str | None = Query(default=None),
+    order: str = Query(default="asc"),
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=10, ge=1, le=100),
     db: Session = Depends(get_db),
-
     current_user: User = Depends(
         require_roles("admin", "teacher")
     )
 ):
     query = db.query(Student).filter(
-        Student.is_deleted==False
+        Student.is_deleted == False
     )
 
     if sort_by and sort_by not in ["age", "name", "course"]:
         raise HTTPException(
             status_code=400,
             detail="Invalid sort_by. Allowed values: age, name, course"
-    )
+        )
 
     if order not in ["asc", "desc"]:
         raise HTTPException(
             status_code=400,
             detail="Invalid order. Allowed values: asc, desc"
-    )
+        )
 
     # Name search
     if name:
         query = query.filter(
             Student.name.ilike(f"%{name}%")
         )
-    # course search
+
+    # Course search
     if course:
-        query=query.filter(
-            Student.course==course
+        query = query.filter(
+            Student.course == course
         )
+
+    # Sorting
     if sort_by == "age":
         if order == "desc":
             query = query.order_by(Student.age.desc())
@@ -186,14 +202,13 @@ def get_students(
         else:
             query = query.order_by(Student.course.asc())
 
-    
-
     # Pagination
     offset = (page - 1) * limit
 
     students = query.offset(offset).limit(limit).all()
 
     return students
+
 
 # =========================
 # Get Student By ID
@@ -209,7 +224,7 @@ def get_student(
 ):
     student = db.query(Student).filter(
         Student.id == student_id,
-        Student.is_deleted==False
+        Student.is_deleted == False
     ).first()
 
     if not student:
@@ -219,6 +234,7 @@ def get_student(
         )
 
     return student
+
 
 # =========================
 # Delete Student
@@ -242,12 +258,13 @@ def delete_student(
             detail="Student not found"
         )
 
-    student.is_deleted=True
+    student.is_deleted = True
     db.commit()
 
     return {
         "message": "Student deleted successfully"
     }
+
 
 # =========================
 # Test User-Student Relationship
@@ -282,6 +299,7 @@ def get_user_students(
             if not student.is_deleted
         ]
     }
+
 
 # =========================
 # Get Student's User

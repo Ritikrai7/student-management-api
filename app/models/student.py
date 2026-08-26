@@ -24,3 +24,8 @@ class Student(Base):
         "User",
         back_populates="students"
     )
+
+    enrollments = relationship(
+        "Enrollment",
+        back_populates="student"
+    )
