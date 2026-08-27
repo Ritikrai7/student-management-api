@@ -26,3 +26,11 @@ def create_course(
     db.refresh(new_course)
 
     return new_course
+
+@router.get("/", response_model=list[CourseResponse])
+def get_courses(
+    db: Session = Depends(get_db)
+):
+    courses = db.query(Course).all()
+
+    return courses
