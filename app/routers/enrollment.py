@@ -32,3 +32,20 @@ def enroll_student(
         "student_id": new_enrollment.student_id,
         "course_id": new_enrollment.course_id
     }
+
+
+@router.get("/")
+def get_enrolled_students(
+    db: Session = Depends(get_db)
+):
+    enrollments = db.query(Enrollment).all()
+
+    return [
+        {
+            "student_id": enrollment.student_id,
+            "student_name": enrollment.student.name,
+            "course_id": enrollment.course_id,
+            "course_name": enrollment.course.name
+        }
+        for enrollment in enrollments
+    ]
