@@ -21,6 +21,11 @@ class User(Base):
     )
 
     notifications = relationship(
-    "Notification",
-    back_populates="user"
-)
+        "Notification",
+        back_populates="user"
+    )
+
+    activity_logs = relationship(
+        "ActivityLog",
+        back_populates="user"
+    )
