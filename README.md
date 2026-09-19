@@ -1,59 +1,160 @@
-# Student Management API
+# 🎓 Student Management API
 
-A backend REST API built with **FastAPI** for managing students and users with **JWT authentication** and **role-based authorization**.
+A secure and modular **RESTful backend API** for managing students, courses, enrollments, attendance, assignments, notifications, and user activity.
+
+Built with **FastAPI, SQLAlchemy, MySQL, JWT Authentication, and Pydantic**, this project demonstrates real-world backend development concepts including authentication, role-based authorization, relational database design, validation, pagination, soft deletion, and API documentation.
+
+---
 
 ## 🚀 Features
 
-* User registration
-* Secure password hashing with bcrypt
-* User login
-* JWT access token authentication
-* Current user profile
-* Role-based authorization
-* Admin and Teacher permissions
-* Student CRUD operations
-* User–Student relationship using SQLAlchemy
-* Swagger API documentation
-* MySQL database integration
+### 🔐 Authentication & Authorization
+
+* User registration and login
+* JWT-based authentication
+* Password hashing using Passlib
+* Role-based access control
+* Protected API routes
+
+### 👨‍🎓 Student Management
+
+* Create, read, update and delete students
+* Search students
+* Sorting
+* Pagination
+* Soft delete functionality
+* User-to-student relationship
+
+### 📚 Course Management
+
+* Create and manage courses
+* Course description and duration
+* Course-based assignment management
+* Course enrollment support
+
+### 🎓 Enrollment Management
+
+* Enroll students into courses
+* View all enrollments
+* View enrollments for a specific student
+* View students enrolled in a specific course
+* Delete enrollments
+* Student ↔ Course relationship through Enrollment
+
+### 📝 Attendance Management
+
+* Mark student attendance
+* View student attendance records
+* Calculate attendance statistics
+* Present/absent count
+* Attendance percentage
+
+### 📖 Assignment Management
+
+* Create assignments
+* Update assignments
+* Get all assignments
+* Get assignment by ID
+* Get assignments for a course
+* Get assignments available to a student through course enrollment
+* Delete assignments
+
+### 🔔 Notifications
+
+* Create notifications for users
+* Get all notifications
+* Get user-specific notifications
+* Get unread notifications
+* Mark notifications as read
+
+### 📝 Activity / Audit Logs
+
+* Record user activities
+* Store action and description
+* Track activity creation time
+* View all activity logs
+* View activity logs for a specific user
+
+### 📊 Dashboard & Statistics
+
+* Student-related statistics
+* Attendance statistics
+* Data retrieval using relational database queries
+
+### 📖 API Documentation
+
+* Interactive Swagger UI
+* OpenAPI documentation
+* API testing directly from `/docs`
+
+---
 
 ## 🛠️ Tech Stack
 
-* **Python**
-* **FastAPI**
-* **SQLAlchemy**
-* **MySQL**
-* **PyMySQL**
-* **Pydantic**
-* **JWT**
-* **python-jose**
-* **Passlib / bcrypt**
-* **Uvicorn**
+| Technology        | Purpose                         |
+| ----------------- | ------------------------------- |
+| Python            | Programming Language            |
+| FastAPI           | Backend REST API Framework      |
+| SQLAlchemy        | ORM and Database Interaction    |
+| MySQL             | Relational Database             |
+| PyMySQL           | MySQL Database Driver           |
+| Pydantic          | Data Validation & Serialization |
+| Pydantic Settings | Environment Configuration       |
+| JWT               | Authentication                  |
+| python-jose       | JWT Token Handling              |
+| Passlib           | Password Hashing                |
+| bcrypt            | Password Hashing Algorithm      |
+| Uvicorn           | ASGI Server                     |
+| python-multipart  | Form Data Support               |
+| email-validator   | Email Validation                |
 
-## 📁 Project Structure
+---
+
+## 🏗️ Project Architecture
+
+The project follows a modular FastAPI structure:
 
 ```text
-student_management _api/
+student_management_api/
 │
 ├── app/
-│   ├── models/
-│   │   ├── user.py
-│   │   └── student.py
-│   │
-│   ├── routers/
-│   │   ├── user.py
-│   │   └── student.py
-│   │
-│   ├── schemas/
-│   │   ├── user.py
-│   │   └── student.py
-│   │
-│   ├── utils/
-│   │   └── security.py
+│   ├── main.py
 │   │
 │   ├── config.py
 │   ├── database.py
 │   ├── dependencies.py
-│   └── main.py
+│   │
+│   ├── models/
+│   │   ├── user.py
+│   │   ├── student.py
+│   │   ├── course.py
+│   │   ├── enrollment.py
+│   │   ├── attendance.py
+│   │   ├── assignment.py
+│   │   ├── notification.py
+│   │   └── activity_log.py
+│   │
+│   ├── schemas/
+│   │   ├── user.py
+│   │   ├── student.py
+│   │   ├── course.py
+│   │   ├── enrollment.py
+│   │   ├── attendance.py
+│   │   ├── assignment.py
+│   │   ├── notification.py
+│   │   └── activity_log.py
+│   │
+│   ├── routers/
+│   │   ├── user.py
+│   │   ├── student.py
+│   │   ├── course.py
+│   │   ├── enrollment.py
+│   │   ├── attendance.py
+│   │   ├── assignment.py
+│   │   └── notification.py
+│   │
+│   └── utils/
+│       └── security.py
 │
 ├── .env
 ├── .gitignore
@@ -61,266 +162,178 @@ student_management _api/
 └── README.md
 ```
 
-## 🔐 Authentication
+---
 
-The API uses **JWT Bearer Authentication**.
+## 🗄️ Database Design
 
-### Login Flow
+The application uses **MySQL** with SQLAlchemy ORM.
 
-```text
-User Login
-    ↓
-Verify Email & Password
-    ↓
-Generate JWT Access Token
-    ↓
-Send Token to Client
-    ↓
-Use Bearer Token for Protected APIs
-```
-
-Protected endpoints require a valid JWT token.
-
-## 👥 Role-Based Authorization
-
-The API supports different user roles:
-
-| Role    | Create Student | Read Students | Update Student | Delete Student |
-| ------- | -------------- | ------------- | -------------- | -------------- |
-| Admin   | ✅              | ✅             | ✅              | ✅              |
-| Teacher | ✅              | ✅             | ✅              | ❌              |
-| Student | ❌              | ❌             | ❌              | ❌              |
-
-Unauthorized users receive:
-
-* `401 Unauthorized` → missing/invalid authentication
-* `403 Forbidden` → authenticated but insufficient permissions
-
-## 🎓 Student CRUD
-
-The API provides the following student operations:
-
-### Create Student
-
-```http
-POST /students/
-```
-
-Allowed roles:
+Main tables:
 
 ```text
-admin
-teacher
+users
+students
+courses
+enrollments
+attendance
+assignments
+notifications
+activity_logs
 ```
 
-### Get All Students
-
-```http
-GET /students/
-```
-
-Allowed roles:
-
-```text
-admin
-teacher
-```
-
-### Get Student By ID
-
-```http
-GET /students/{student_id}
-```
-
-Allowed roles:
-
-```text
-admin
-teacher
-```
-
-### Update Student
-
-```http
-PUT /students/{student_id}
-```
-
-Allowed roles:
-
-```text
-admin
-teacher
-```
-
-### Delete Student
-
-```http
-DELETE /students/{student_id}
-```
-
-Allowed role:
-
-```text
-admin
-```
-
-## 🔗 User–Student Relationship
-
-The project uses a SQLAlchemy relationship between users and students.
+### Main Relationships
 
 ```text
 User
  │
- │  user_id
- ↓
+ ├── Student
+ │
+ ├── Notification
+ │
+ └── ActivityLog
+       
 Student
+ │
+ └── Enrollment
+          │
+          └── Course
+                 │
+                 └── Assignment
 ```
 
-The `students` table contains:
+The enrollment table acts as the connection between students and courses.
+
+This allows a student to enroll in multiple courses and a course to contain multiple students.
+
+---
+
+## 🔄 Student → Course → Assignment Flow
+
+Assignments belong to courses rather than directly to students.
+
+The relationship works like this:
 
 ```text
-user_id
+Student
+   ↓
+Enrollment
+   ↓
+Course
+   ↓
+Assignment
 ```
 
-which references:
+Therefore, when retrieving assignments for a student, the API uses the enrollment relationship to find the courses of that student and then retrieves the assignments belonging to those courses.
+
+This avoids unnecessarily storing `student_id` inside the assignment table.
+
+---
+
+## 🔑 Authentication Flow
+
+The authentication process works approximately as follows:
 
 ```text
-users.id
+Register
+   ↓
+Password Hashing
+   ↓
+User stored in MySQL
+   ↓
+Login
+   ↓
+Credentials verified
+   ↓
+JWT Token generated
+   ↓
+Token sent with protected requests
+   ↓
+User authenticated
+   ↓
+Role checked where required
 ```
 
-When an authorized user creates a student, the logged-in user's ID is automatically stored:
+JWT tokens are used to protect authenticated endpoints.
 
-```python
-user_id=current_user.id
-```
+---
 
-This connects the student with the user who created it.
+## 🗑️ Soft Delete
 
-## 👤 User APIs
+Students use a soft-delete mechanism instead of immediately removing records from the database.
 
-### Register
-
-```http
-POST /users/register
-```
-
-Creates a new user with a hashed password.
-
-New users are assigned the default role:
+The student record contains:
 
 ```text
-student
+is_deleted
 ```
 
-### Login
+When a student is deleted, the record is marked as deleted rather than permanently removed.
 
-```http
-POST /users/login
-```
+This preserves the database record while preventing deleted students from appearing in normal student listings.
 
-Returns:
+---
 
-```json
-{
-  "access_token": "JWT_TOKEN",
-  "token_type": "bearer"
-}
-```
-
-### Current User
-
-```http
-GET /users/me
-```
-
-Returns the currently authenticated user's profile.
-
-## ⚙️ Installation
+## ⚙️ Installation & Setup
 
 ### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Ritikrai7/student-management-api.git
-```
-
-### 2. Navigate to the project
-
-```bash
 cd student-management-api
 ```
 
-### 3. Create a virtual environment
+### 2. Create a virtual environment
 
 ```bash
 python -m venv myenv
 ```
 
-### 4. Activate the virtual environment
+### 3. Activate the virtual environment
 
-Windows PowerShell:
+#### Windows PowerShell
 
 ```powershell
 .\myenv\Scripts\Activate.ps1
 ```
 
-### 5. Install dependencies
+### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 🔑 Environment Variables
+### 5. Configure environment variables
 
 Create a `.env` file in the project root.
 
 Example:
 
 ```env
-DATABASE_URL=your_mysql_database_url
-SECRET_KEY=your_secret_key
+DATABASE_URL=mysql+pymysql://username:password@localhost/std_db
+SECRET_KEY=your-secret-key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-Do not commit your real `.env` file to GitHub.
+Replace the database username and password with your local MySQL credentials.
 
-## 🗄️ Database
-
-The project uses **MySQL** with SQLAlchemy.
-
-The main tables are:
-
-```text
-users
-students
-```
-
-The relationship is:
-
-```text
-users.id
-   ↑
-   │
-students.user_id
-```
-
-## ▶️ Running the Application
-
-Start the FastAPI server:
+### 6. Run the application
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-The API will run locally at:
+The API will be available at:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-## 📚 API Documentation
+---
 
-FastAPI automatically provides Swagger documentation.
+## 📖 Swagger Documentation
+
+FastAPI automatically provides interactive API documentation.
 
 Open:
 
@@ -328,42 +341,135 @@ Open:
 http://127.0.0.1:8000/docs
 ```
 
-You can test authentication, authorization and CRUD APIs directly from Swagger UI.
+You can use Swagger UI to:
 
-## 🧪 Testing
+* Register users
+* Login
+* Test authentication
+* Manage students
+* Manage courses
+* Manage enrollments
+* Manage attendance
+* Manage assignments
+* Manage notifications
+* Manage activity logs
 
-The following authorization scenarios have been tested:
+---
 
-* Admin CRUD operations
-* Teacher create/read/update operations
-* Teacher delete restriction
-* Student CRUD restrictions
-* Missing JWT token
-* Invalid JWT token
-* User–Student relationship
-* Student–User relationship
+## 🔌 Major API Modules
 
-Expected security responses:
+| Module           | Purpose                              |
+| ---------------- | ------------------------------------ |
+| `/users`         | User registration and authentication |
+| `/students`      | Student management                   |
+| `/courses`       | Course management                    |
+| `/enrollment`    | Student-course enrollment            |
+| `/attendance`    | Attendance management                |
+| `/assignments`   | Assignment management                |
+| `/notifications` | User notifications                   |
+| `/activity-logs` | Activity and audit logging           |
+
+For the complete endpoint list and request/response schemas, use the Swagger documentation at `/docs`.
+
+---
+
+## 🧠 Key Backend Concepts Implemented
+
+This project demonstrates practical implementation of:
+
+* REST API development
+* FastAPI routing
+* Dependency Injection
+* Pydantic validation
+* SQLAlchemy ORM
+* MySQL relationships
+* Foreign Keys
+* One-to-many relationships
+* Many-to-many relationships
+* JWT authentication
+* Password hashing
+* Role-based authorization
+* Query filtering
+* Search
+* Sorting
+* Pagination
+* Soft deletion
+* Database joins
+* Attendance calculations
+* API response models
+* Exception handling
+* Environment-based configuration
+* Activity/audit logging
+* Swagger/OpenAPI documentation
+
+---
+
+## 📌 Example: Student Assignment Query
+
+Assignments are connected to students through enrollment.
+
+Conceptually:
 
 ```text
-401 → Authentication failure
-403 → Authorization failure
-404 → Resource not found
-200 → Successful request
+Student
+   ↓
+Enrollment
+   ↓
+Course
+   ↓
+Assignment
 ```
 
-## 🔮 Future Improvements
+The application can therefore retrieve assignments for a student using a database join between `Assignment` and `Enrollment`.
 
-* Automated unit and integration tests
-* Better API error handling
-* Pagination and filtering
-* Search students
-* Improved API documentation
-* Production deployment
-* CI/CD pipeline
+---
+
+## 🔒 Security
+
+The project includes:
+
+* Hashed passwords
+* JWT-based authentication
+* Role-based authorization
+* Environment variables for sensitive configuration
+* Pydantic request validation
+* Protected routes
+
+Sensitive values such as database credentials and secret keys should not be committed to GitHub.
+
+---
 
 ## 👨‍💻 Author
 
 **Ritik Rai**
 
-GitHub: `Ritikrai7`
+GitHub:
+https://github.com/Ritikrai7
+
+Project Repository:
+https://github.com/Ritikrai7/student-management-api
+
+---
+
+## 🚀 Future Improvements
+
+Possible next improvements include:
+
+* Automated unit and integration testing
+* API test coverage
+* Deployment to a cloud platform
+* Docker support
+* CI/CD pipeline
+* Database migrations using Alembic
+* More advanced dashboard analytics
+* Improved automated audit logging
+* Production-level logging and monitoring
+
+---
+
+## ⭐ Project Status
+
+**Core Student Management API: Complete ✅**
+
+The project currently contains authentication, authorization, student and course management, enrollment, attendance, assignments, notifications, statistics, and activity/audit logging.
+
