@@ -83,8 +83,7 @@ def get_current_user(
 # Role Authorization
 # =========================
 
-def require_roles(*required_roles: str):
-
+def require_roles(*required_roles: str):    
     def role_checker(
         current_user: User = Depends(get_current_user)
     ):
